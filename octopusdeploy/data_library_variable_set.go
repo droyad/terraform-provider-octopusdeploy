@@ -19,7 +19,7 @@ func dataLibraryVariableSet() *schema.Resource {
 		},
 	}
 }
-
+library_variable_set
 func dataLibraryVariableSetReadByName(d *schema.ResourceData, m interface{}) error {
 	client := m.(*octopusdeploy.Client)
 
