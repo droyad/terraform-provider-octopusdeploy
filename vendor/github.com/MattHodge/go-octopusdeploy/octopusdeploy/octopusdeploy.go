@@ -25,7 +25,8 @@ type Client struct {
 	Machine            *MachineService
 	Lifecycle          *LifecycleService
 	LibraryVariableSet *LibraryVariableSetService
-	TagSet 				*TagSetService
+	TagSet 			   *TagSetService
+	Space			   *SpaceService
 }
 
 // NewClient returns a new Client.
@@ -49,8 +50,33 @@ func NewClient(httpClient *http.Client, octopusURL, octopusAPIKey string) *Clien
 		Lifecycle:          NewLifecycleService(base.New()),
 		LibraryVariableSet: NewLibraryVariableSetService(base.New()),
 		TagSet:				NewTagSetService(base.New()),
+		Space:				NewSpaceService(base.New()),
 	}
 }
+
+func ForSpace(httpClient *http.Client, octopusURL, octopusAPIKey string, space *Space) *Client {
+	baseURLWithAPI := strings.TrimRight(octopusURL, "/")
+	baseURLWithAPI = fmt.Sprintf("%s/api/%s/", baseURLWithAPI, space.ID)
+	fmt.Println(baseURLWithAPI)
+	base := sling.New().Client(httpClient).Base(baseURLWithAPI).Set("X-Octopus-ApiKey", octopusAPIKey)
+	return &Client{
+		sling:              base,
+		Account:			NewAccountService(base.New()),
+		DeploymentProcess:  NewDeploymentProcessService(base.New()),
+		ProjectGroup:       NewProjectGroupService(base.New()),
+		Project:            NewProjectService(base.New()),
+		ProjectTrigger:     NewProjectTriggerService(base.New()),
+		Environment:        NewEnvironmentService(base.New()),
+		Feed:        		NewFeedService(base.New()),
+		Variable:           NewVariableService(base.New()),
+		MachinePolicy:      NewMachinePolicyService(base.New()),
+		Machine:            NewMachineService(base.New()),
+		Lifecycle:          NewLifecycleService(base.New()),
+		LibraryVariableSet: NewLibraryVariableSetService(base.New()),
+		TagSet:				NewTagSetService(base.New()),
+	}
+}
+
 
 type APIError struct {
 	ErrorMessage  string   `json:"ErrorMessage"`
@@ -127,6 +153,7 @@ func apiAdd(sling *sling.Sling, inputStruct, returnStruct interface{}, path stri
 // Generic OctopusDeploy API Add Function.
 func apiUpdate(sling *sling.Sling, inputStruct, returnStruct interface{}, path string) (interface{}, error) {
 	octopusDeployError := new(APIError)
+
 	resp, err := sling.New().Put(path).BodyJSON(inputStruct).Receive(returnStruct, &octopusDeployError)
 
 	apiErrorCheck := APIErrorChecker(path, resp, http.StatusOK, err, octopusDeployError)
